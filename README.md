@@ -2,8 +2,17 @@
 
 ## Table of Contents
 
+- [Additions](#additions)
 - [Instructions](#instructions)
 - [Contributing](#contributing)
+
+## Additions
+
+### How to run the game
+
+### How to play the game
+
+### Notes on implementation
 
 ## Instructions
 
