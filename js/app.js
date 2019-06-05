@@ -70,6 +70,10 @@ var Player = function() {
     // The image/sprite for our enemies, this uses
     // a helper we've provided to easily load images
     this.sprite = 'images/char-boy.png';
+
+    // TODO: Should be a way to get this directly from the
+    // original eventListener
+    this.currentKeyupValue = 0;
 };
 
 // Update the player's position, required method for game
@@ -91,15 +95,22 @@ Player.prototype.handleInput = function() {
     // which will ensure the game runs at the same speed for
     // all computers.
 
-    console.log(player.handleInput());
+// document.addEventListener('keyup', function(e) {
+//     console.log(e.keyCode);
+//     player.currentKeyupValue = e.keyCode;
+// });
 
-    if (keyNumber == 'left') {
+    let keyNumber = player.currentKeyupValue;
+    // let keyNumber = document.addEventListener.onkeyup;
+    console.log(keyNumber);
+
+    if ((keyNumber == 'ArrowLeft') || (keyNumber == 37)) {
         player.x -= 1;
-    } else if (keyNumber == 'up') {
+    } else if ((keyNumber == 'ArrowUp') || (keyNumber == 38)) {
         player.y -= 1;
-    } else if (keyNumber == 'right') {
+    } else if ((keyNumber == 'ArrowRight') || (keyNumber == 39)) {
         player.x += 1;
-    } else if (keyNumber == 'down') {
+    } else if ((keyNumber == 'ArrowDown') || (keyNumber == 40)) {
         player.y += 1;
     } else {
         console.log(keyNumber);
@@ -141,6 +152,11 @@ document.addEventListener('keyup', function(e) {
     player.handleInput(allowedKeys[e.keyCode]);
 });
 
+// TODO: Should be a way to avoid this duplication of eventListeners
+document.addEventListener('keyup', function(e) {
+    console.log(e.keyCode);
+    player.currentKeyupValue = e.keyCode;
+});
 
 /* ADDITIONAL REFERENCES CONSULTED
 https://developer.mozilla.org/en-US/docs/Web/API/Document/keyup_event
