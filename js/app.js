@@ -11,8 +11,7 @@ var Enemy = function(y, d, rs) {
     // NOTE: Alignment constant apparently necessary to center pngs
     const yAlignConstant = 0.25;
     // NOTE: Assuming origin = 0,0
-    // NOTE: startX always 0;
-    // NOTE: Pass in startY or generate randomly???
+    // NOTE: startX = hardcoded; FUTURE: vary startX and generate randomly
     this.startX = 0;
     this.startY = y - yAlignConstant;
     this.x = this.startX;
@@ -35,14 +34,34 @@ Enemy.prototype.update = function(dt) {
     // which will ensure the game runs at the same speed for
     // all computers.
     // NOTE: Applying relativeSpeed and adding modulo to loop around
-    // NOTE: 5 for modulo comes from numCols in engine.js.
-    //         See engine.js function render() @105/109:)
+    // NOTE: 5 for x-axis modulo comes from numCols in engine.js.
+    //      See engine.js function render() @105/109
     // TODO: Implement delay
     this.x = ((this.x + (dt * this.relativeSpeed)) % 5)
     // FUTURE: To make more challenging:
         // (a) vary parameters randomly
         // (b) have "lane changes" when looping around
         // (c) levels with increasing speeds & enemies
+};
+
+/*2019-06-06
+New method on Enemy.prototype
+Adding checkCollision() to updateEntities in engine.js
+2019-06-06 NOTE: After manual testing, not necessary to test deltaY,
+but decided to leave in for sake of completeness
+NOTE: collisonK set through manual testing to
+to fine tune responsiveness of collision detection
+*/
+Enemy.prototype.checkCollision = function() {
+    const collisionK = 0.4;
+    let deltaX = Math.abs(this.x - player.x);
+    let deltaY = Math.abs(this.y - player.y);
+    if ((deltaX <= collisionK) && (deltaY <= 0.01)) {
+        console.log("COLLISION DETECTED");
+        return true;
+    } else {
+        return false;
+    }
 };
 
 // Draw the enemy on the screen, required method for game
@@ -61,6 +80,8 @@ var Player = function() {
     // Initializing Player position
     // NOTE: Seems like constant start position
     // NOTE: Alignment constant apparently necessary to center pngs
+    // NOTE: If yAlignConstant changed, will need to change hard-coded
+    //     value in Player.prototype.handleInput
     const yAlignConstant = 0.25;
     this.startX = 2;
     this.startY = 4 - yAlignConstant;
@@ -76,6 +97,51 @@ var Player = function() {
     this.currentKeyupValue = 0;
 };
 
+/*
+first helper function for checkVictory()
+2019-06-06 NOTES:
+1.  Delay functionality based on
+https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#JavaScript
+2.  Delay functionality necessary, because otherwise player png is not
+rendered when windows.alert appears
+*/
+let victoryDelayedWindowAlert;
+
+function checkVictoryDelayedAlert() {
+    victoryDelayedWindowAlert = window.setTimeout(window.alert, 100,
+        "Congratulations!  You've won!");
+}
+
+/*
+additional helper functions for checkVictory()
+2019-06-06 NOTES:
+1.  Delay functionality based on
+https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#JavaScript
+2.  Delay functionality necessary, because otherwise player png is
+rendered in start position when windows.alert appears
+*/
+function playerReposition() {
+    player.x = player.startX;
+    player.y = player.startY;
+}
+let victoryDelayedPlayerReposition;
+
+function checkVictoryDelayedPlayerReposition() {
+    victoryDelayedPlayerReposition = window.setTimeout(playerReposition(), 2000);
+}
+
+// main function for checking victory
+/* 2019-06-06 NOTE: At present, just a simple window.alert with a delay
+*/
+
+function checkVictory() {
+    if (player.y <= 0) {
+        // console.log("RUN VICTORY ANIMATION");
+        // checkVictoryDelayedAlert();
+        // checkVictoryDelayedPlayerReposition();
+    }
+}
+
 // Update the player's position, required method for game
 // Parameter: dt, a time delta between ticks
 // NOTE: For dt, see engine.js function main() @34:
@@ -84,13 +150,8 @@ Player.prototype.update = function(dt) {
     // You should multiply any movement by the dt parameter
     // which will ensure the game runs at the same speed for
     // all computers.
+    checkVictory();
 };
-
-
-// helper function for collisonTest();
-function logName(element) {
-    console.log(element);
-}
 
 // Update the player's position, required method for game
 // Parameter: dt, a time delta between ticks
@@ -108,6 +169,8 @@ Player.prototype.handleInput = function(event) {
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
     if (allowedDirections.includes(keyDirection) === false) {
         console.log(keyDirection + " from eventListener was improper input");
+    // NOTE: 0.75 value in next line basically hard-coded based on
+    //     0.25 yAlignConstant
     } else if ((keyDirection == 'left') && (player.x >= 0.75)) {
         player.x -= 1;
     } else if ((keyDirection == 'up') && (player.y >= 0)) {
@@ -119,26 +182,10 @@ Player.prototype.handleInput = function(event) {
     } else {
         console.log("Player has reached an x or y limit.");
     }
-
-    // collisonTest();
-    const collisonK = 0.5;
-
-    // 2019-06-05: Basic syntax from
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
-    allEnemies.forEach(logName);
-
-    // for 3 rows
-    //     for all enemies in row
-    //         if abs(player.x - enemy.x) < collisonK
-    //             return true;
-    //         else
-    //             return false;
-
-    // victoryTest();
 };
 
 // Draw the player on the screen, required method for game
-// NOTE 2019-06-03: Essentially copied from base code for Enemy
+// NOTE 2019-06-03: Essentially copied from base code for Enemy above
 // NOTE: Assuming x-values (columns) precede y-values and
 // constants need to be added based on engine.js function render() @105/137:
 Player.prototype.render = function() {
@@ -151,12 +198,13 @@ Player.prototype.render = function() {
 
 const player = new Player();
 
-const enemy1 = new Enemy(1, 0, 1.2);
+const enemy1 = new Enemy(1, 0, 1.6);
 const enemy2 = new Enemy(2, 0, 0.9);
-const enemy3 = new Enemy(3, 0, 1.5);
-const enemy4 = new Enemy(1, 0, 2.0);
-
-const allEnemies = [enemy1, enemy2, enemy3, enemy4];
+const enemy3 = new Enemy(3, 0, 1.8);
+const enemy4 = new Enemy(1, 0, 3.0);
+const enemy5 = new Enemy(2, 0, 2.0);
+const enemy6 = new Enemy(3, 0, 1.4);
+const allEnemies = [enemy1, enemy2, enemy3, enemy4, enemy5, enemy6];
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
@@ -171,11 +219,16 @@ document.addEventListener('keyup', function(e) {
     player.handleInput(allowedKeys[e.keyCode]);
 });
 
-/* TODO
+/*
+TODO
+1.  Time permitting:
+    A.  Add additional functionality as described in project rubric.
+    B.  Add add more functionality (e.g. link to YouTube video) for winning.
+    C.  Randomize Enemy speed and starting position values.
+    D.  Try module approach for collision detection.
 
-*/
 
-/* ADDITIONAL REFERENCES CONSULTED
+ADDITIONAL REFERENCES CONSULTED
 
 Javascript:
 
@@ -196,13 +249,29 @@ https://developer.mozilla.org/en-US/docs/Web/API/EventTarget
 https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onkeyup
 https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent
 https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Event_handlers
-
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs
+https://stackoverflow.com/questions/25962958/calling-a-javascript-function-in-another-js-file
 
-*/
 
-/* KEY LEARNING
+KEY LEARNING
+
+2019-06-06:
+Also took me a while to figure out where to put collision detection.
+
+One issue was whether to try to call a function from engine.js in app.js,
+but this might have entailed using modules because of the sequence of
+these two files being called in index.html.  See the following:
+https://stackoverflow.com/questions/25962958/calling-a-javascript-function-in-another-js-file
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules
+
+For initial implementation, I'm not using the module approach.  Instead,
+I've added (a) Enemy.prototype.checkCollision() as a new method on
+the Enemy prototype and (b) a test based on enemy.checkCollision()
+to updateEntities(dt) in engine.js
+
 
 2019-06-04--2019-06-05:
 Took me a while to figure out what was being returned from

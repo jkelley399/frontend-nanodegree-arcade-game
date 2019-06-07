@@ -92,6 +92,14 @@ var Engine = (function(global) {
     function updateEntities(dt) {
         allEnemies.forEach(function(enemy) {
             enemy.update(dt);
+            // 2019-06-06
+            // Trying checkCollisions on enemies
+            // Adding Enemy.prototype.checkCollision in app.js
+            if (enemy.checkCollision()) {
+                player.x = player.startX;
+                player.y = player.startY;
+            }
+            // End addition
         });
         player.update();
     }
