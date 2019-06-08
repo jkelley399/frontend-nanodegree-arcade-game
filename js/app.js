@@ -49,6 +49,7 @@ Enemy.prototype.update = function(dt) {
 
 /*2019-06-06
 New method on Enemy.prototype
+Returns Boolean and increments collision count
 Adding checkCollision() to updateEntities in engine.js
 2019-06-06 NOTE: After manual testing, not necessary to test deltaY,
 but decided to leave in for sake of completeness
@@ -61,6 +62,8 @@ Enemy.prototype.checkCollision = function() {
     let deltaY = Math.abs(this.y - player.y);
     if ((deltaX <= collisionK) && (deltaY <= 0.01)) {
         console.log("COLLISION DETECTED");
+        // increment collision count
+        scoreboard.collisionCountIncrement();
         return true;
     } else {
         return false;
@@ -98,59 +101,34 @@ var Player = function() {
     // TODO: Should be a way to get this directly from the
     // original eventListener
     this.currentKeyupValue = 0;
+
+    // tracking time for current round
+    this.elapsedTimeIntervalID = '';
+    this.startElapsedTimeInterval = '';
+    this.elapsedTimeInterval = '';
 };
 
-/*
-first helper function for checkVictory()
-2019-06-06 NOTES:
-1.  Delay functionality based on
-https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#JavaScript
-2.  Delay functionality necessary, because otherwise player png is not
-rendered when windows.alert appears
-*/
-let victoryDelayedWindowAlert;
 
-function checkVictoryDelayedAlert() {
-    victoryDelayedWindowAlert = window.setTimeout(window.alert, 1,
-        "Congratulations!  You've won!");
-}
-
-/*
-additional helper functions for checkVictory()
-2019-06-06 NOTES:
-1.  Delay functionality based on
-https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#JavaScript
-2.  Delay functionality necessary, because otherwise player png is
-rendered in start position when windows.alert appears
-*/
-function playerReposition() {
-    player.x = player.startX;
-    player.y = player.startY;
-}
-let victoryDelayedPlayerReposition;
-
-function checkVictoryDelayedPlayerReposition() {
-    victoryDelayedPlayerReposition = window.setTimeout(playerReposition(), 2000);
-}
-
-// main function for checking victory
-/* 2019-06-06 NOTE: At present, just a simple window.alert with a delay
-*/
-
+// helper function for Player.prototype.update
+//     NOTE: chose separate function to enable modal-showing syntax
 function checkVictory() {
     if (player.y <= 0) {
-        // console.log("RUN VICTORY ANIMATION");
-        // NOTE: Based on modal done for prior Memory Game project, which was
-        //       based on on https://getbootstrap.com/docs/4.0/components/modal/,
-        //       specifically, the "Methods" section, consulted 2019-05-09 and 2019-06-07
+        player.stopElapsedTime();
+        scoreboard.update();
+        // NOTE:   Based on modal done for prior Memory Game project,
+        //         which was based on on
+        //         https://getbootstrap.com/docs/4.0/components/modal/,
+        //         specifically, the "Methods" section,
+        //         consulted 2019-05-09 and 2019-06-07
         $('#game-winning-modal-div').modal('show');
-        // checkVictoryDelayedAlert();
-        // checkVictoryDelayedPlayerReposition();
     }
 }
 
 // Update the player's position, required method for game
 // Parameter: dt, a time delta between ticks
+// NOTE: Since the player's position was determined by
+// keyboard input, I chose to add that
+// functionality to Player.prototype.handleInput
 // NOTE: For dt, see engine.js function main() @34:
 // NOTE: Basic syntax from base code for Enemy
 Player.prototype.update = function(dt) {
@@ -172,9 +150,17 @@ Player.prototype.handleInput = function(event) {
     let keyDirection = event;
     const allowedDirections = ['left', 'up', 'right', 'down'];
 
+    // start elapsedTime
     if ((allowedDirections.includes(keyDirection) === true) &&
         scoreboard.keystrokeCount === 0) {
-        startElapsedTime();
+        // WIP: Should it be this or Player.prototype in next line?
+        player.startElapsedTime();
+    }
+
+    // increment keystroke count
+    if (allowedDirections.includes(keyDirection) === true) {
+        // WIP: Is scoreboard within this prototype's scope?
+        scoreboard.keystrokeIncrement();
     }
 
     // 2019-06-05: first if () test based on
@@ -209,6 +195,45 @@ Player.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x * 101, this.y *83);
 };
 
+2019-06-08: WIP: COULDN'T GET updateElapsedTime to work as a method on Player.prototype
+switching to make it a stand-alone function
+
+Player.prototype.updateElapsedTime = function() {
+    // Use of Date.now() based on now in engine.js consulted 2019-06-08
+    //     and on
+    //     https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
+    //     consulted 2019-06-08
+    // JKQ:    Code below didn't work with this.startElapsedTimeInterval but did work with
+    //         player.startElapsedTimeInterval.  Why?  In general, shouldn't "this" inside
+    //         the prototype refer to the instance once it's instantiated?
+    if ((player.startElapsedTimeInterval == (undefined || '' || "" )) ||
+        (player.startElapsedTimeInterval >= 1560031790119)) {
+        player.startElapsedTimeInterval = Date.now();
+        player.elapsedTimeInterval = 0;
+    } else {
+        player.elapsedTimeInterval = (Date.now() - player.startElapsedTimeInterval);
+        console.log(player.elapsedTimeInterval);
+    }
+};
+
+let elapsedTimeIntervalID;
+
+Player.prototype.startElapsedTime = function() {
+    // NOTE: based on
+    // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setInterval
+    // consulted 2019-06-08
+    elapsedTimeIntervalID = setInterval(player.updateElapsedTime(), 100);
+};
+
+Player.prototype.stopElapsedTime = function() {
+    // NOTE: based on
+    // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setInterval
+    // consulted 2019-06-08
+    clearInterval(player.elapsedTimeIntervalID);
+};
+
+
+
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
@@ -235,6 +260,56 @@ document.addEventListener('keyup', function(e) {
 
     player.handleInput(allowedKeys[e.keyCode]);
 });
+
+// SCOREBOARD SECTION
+
+// Create scoreboard
+var Scoreboard = function() {
+    // elements of time for scoreboard
+    this.hHours
+    this.mMinutes
+    this.sSeconds
+    // initial values for elements of scoreboard
+    this.startElapsedTime = 0;
+    this.startKeystrokeCount = 0;
+    this.startCollisionCount = 0;
+    // accumulating values for elements of scoreboard
+    this.elapsedTime = 0;
+    this.keystrokeCount = 0;
+    this.collisionCount = 0;
+    // innerHTML for elements of scoreboard
+    // ***WIP
+    this.elapsedTimeInnerHTML = '0';
+    this.keystrokeCountInnerHTML = '0';
+    this.collisionCountInnerHTML = '0';
+
+};
+
+// Update the data in the scoreboard
+// NOTE: Basic syntax from base code for Enemy
+Scoreboard.prototype.update = function() {
+    document.querySelector('#modal-elapsed-time').innerHTML =
+        this.elapsedTimeInnerHTML;
+    document.querySelector('#modal-collision-count').innerHTML =
+        this.keystrokeCountInnerHTML;
+    document.querySelector('#modal-keystroke-count').innerHTML =
+        this.collisionCountInnerHTML;
+};
+
+// Increment keystroke count
+// NOTE: Basic syntax from base code for Enemy
+Scoreboard.prototype.keystrokeIncrement = function() {
+    this.keystrokeCount += 1;
+};
+
+// Increment collision count
+// NOTE: Basic syntax from base code for Enemy
+Scoreboard.prototype.collisionCountIncrement = function() {
+    this.collisionCount += 1;
+};
+
+// Instantiate scoreboard
+let scoreboard = new Scoreboard();
 
 
 // HELPER FUNCTIONS FOR SCOREBOARD SECTION
@@ -284,85 +359,6 @@ function displayNextSecondInHHMMSS() {
     return scoreboardHHMMSS();
 }
 
-let elapsedTimeInterval;
-
-// helper function
-function startElapsedTime() {
-            let elapsedTimeInterval;
-            // NOTE: Initial test aims to prevent setting multiple intervals, which can be
-            // difficult to stop; based on
-            // https://stackoverflow.com/questions/14666924/clearinterval-not-working
-            // consulted 2019-05-09 and 2019-06-07
-            //     I relied upon this, and especially the comment answered
-            //     Feb 2 '13 at 21:56 by Konstantin Dinev
-            if (elapsedTimeInterval == undefined) {
-                elapsedTimeInterval = setInterval(updateElapsedTime, 1000);
-            } else {
-                console.log('elapsedTimeInterval already set, so no new interval')
-            }
-        }
-
-// helper function
-// display updated elapsed time in #modal-elapsed-time
-// TODO: test against system clock and fine tune interval in ms actual elapsed time
-//          For example, there will be some delay in computing functions,
-//          so, instead of using 1000ms, better value may be, e.g., 990ms
-function updateElapsedTime() {
-        scoreboard.elapsedTimeInnerHTML = displayNextSecondInHHMMSS();
-}
-
-// helper function
-// stops setInterval that updates the elapsed time for display in new user dashboard
-//  based on https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setInterval
-//  consulted 2019-05-03--04
-    // NOTE: See "Return Value" section:
-    //     Return value identifies the timer created.
-    // NOTE: See "Example 2: Alternating two colors"
-    //     Uses variable as parameter for clearInterval
-function stopElapsedTimeUpdate() {
-    clearInterval(elapsedTimeInterval);
-    // console.log('clearInterval has been called - elapsedTime should freeze');
-}
-
-
-// SCOREBOARD SECTION
-
-// Create scoreboard
-var Scoreboard = function() {
-    // elements of time for scoreboard
-    this.hHours
-    this.mMinutes
-    this.sSeconds
-    // initial values for elements of scoreboard
-    this.startElapsedTime = 0;
-    this.startKeystrokeCount = 0;
-    this.startCollisionCount = 0;
-    // accumulating values for elements of scoreboard
-    this.elapsedTime = 0;
-    this.keystrokeCount = 0;
-    this.collisionCount = 0;
-    // innerHTML for elements of scoreboard
-    // ***WIP
-    this.elapsedTimeInnerHTML = '';
-    this.keystrokeCountInnerHTML = '';
-    this.collisionCountInnerHTML = '';
-
-};
-
-// Instantiate scoreboard
-let scoreboard = new Scoreboard();
-
-// Update the data in the scoreboard
-// NOTE: Basic syntax from base code for Enemy
-Scoreboard.prototype.update = function() {
-    document.querySelector('#modal-elapsed-time').innerHTML =
-        this.elapsedTimeInnerHTML;
-    document.querySelector('#modal-collision-count').innerHTML =
-        this.keystrokeCountInnerHTML;
-    document.querySelector('#modal-keystroke-count').innerHTML =
-        this.collisionCountInnerHTML;
-};
-
 // Create modal to hold scoreboard data
 // NOTE: Based on keyup eventListener above and on eventListener done
 // for prior Memory Game project
@@ -373,11 +369,13 @@ function startNewGame() {
     // specifically, the "Methods" section, consulted 2019-06-07
     $('#game-winning-modal-div').modal('hide');
     //reset scoreboard
-    modalElapsedTime.innerHTML = elapsedTimeInitialHTML;
-    modalRating.innerHTML = threeStarsInnerHTML;
-    modalClickCount.innerHTML = clickCountDivInitialHTML;
+    scoreboard.update();
+    // reset player values
+    player.elapsedTimeInterval = player.startElapsedTimeInterval;
     player.x = player.startX;
     player.y = player.startY;
+    // reset interval
+    elapsedTimeIntervalID = '';
 }
 
 modalPlayAgainInput.addEventListener('click', startNewGame);
@@ -418,6 +416,7 @@ https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Event_handlers
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/toString
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator
