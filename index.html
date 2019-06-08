@@ -1,13 +1,58 @@
+<!-- O-OJS-JK Classic Arcade Game Clone -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
+    <!-- Necessary meta tags, adding viewport -->
+    <meta name="viewport" content="width=device-width,initial-scale=1, shrink-to-fit=no">
     <title>Effective JavaScript: Frogger</title>
+    <!-- Boostrap CSS.  See: https://getbootstrap.com/, consulted 2019-06-07 -->
+   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- UDAC project-supplied stylesheet -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<!--    NOTE:   Based on modal done for prior Memory Game project, which was
+                based on https://getbootstrap.com/docs/4.0/components/modal/,
+                specifically, the "Live demo," and "Via JavaScript" sections
+                consulted 2019-05-09 and 2019-06-07
+        -->
+        <section id="game-winning-modal-section">
+            <div class="modal fade" id="game-winning-modal-div" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title" id="game-winning-modal-title">CONGRATULATIONS!  You made it!</h3>
+                            <button id="game-winning-modal-button-close" class="close" data-dismiss="modal" aria-label="close" type="button">
+                            </button>
+                        </div>
+                        <div class="modal-body" id="game-winning-modal-content">
+                            <h5>Your elapsed time was:</h5>
+                            <h5 id="modal-elapsed-time"></h5>
+                            <h5>Your total number of collisions was:</h5>
+                            <h5 id="modal-collision-count"></h5>
+                            <h5>Your total number of moves was:</h5>
+                            <h5 id="modal-keystroke-count"></h5>
+                            <h3 class="modal-body-content">
+                            Would you like to play again?</h3>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" id="modal-play-again-button" class="btn btn-primary">Play again</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     <script src="js/resources.js"></script>
     <script src="js/app.js"></script>
     <script src="js/engine.js"></script>
+    <!-- NOTE:  Based on prior Memory Game project, which was
+                based on https://getbootstrap.com/, consulted 2019-06-07
+                Boostrap jQuery, Popper.js, Boostrap jQuery plugins (in order)
+                See: https://getbootstrap.com/ -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 </body>
 </html>

@@ -1,3 +1,6 @@
+// PRIMARY SECTION
+    // NOTE: Comments marked with "NOTE" or in block caps have been added
+
 // Enemies our player must avoid
 // NOTE: Adding three parameters to differentiate enemies:
     // y for row (1, 2, or 3; see engine.js function render() @105/109:)
@@ -36,7 +39,7 @@ Enemy.prototype.update = function(dt) {
     // NOTE: Applying relativeSpeed and adding modulo to loop around
     // NOTE: 5 for x-axis modulo comes from numCols in engine.js.
     //      See engine.js function render() @105/109
-    // TODO: Implement delay
+    // FUTURE: Implement means of delaying start of enemies
     this.x = ((this.x + (dt * this.relativeSpeed)) % 5)
     // FUTURE: To make more challenging:
         // (a) vary parameters randomly
@@ -108,7 +111,7 @@ rendered when windows.alert appears
 let victoryDelayedWindowAlert;
 
 function checkVictoryDelayedAlert() {
-    victoryDelayedWindowAlert = window.setTimeout(window.alert, 100,
+    victoryDelayedWindowAlert = window.setTimeout(window.alert, 1,
         "Congratulations!  You've won!");
 }
 
@@ -137,6 +140,10 @@ function checkVictoryDelayedPlayerReposition() {
 function checkVictory() {
     if (player.y <= 0) {
         // console.log("RUN VICTORY ANIMATION");
+        // NOTE: Based on modal done for prior Memory Game project, which was
+        //       based on on https://getbootstrap.com/docs/4.0/components/modal/,
+        //       specifically, the "Methods" section, consulted 2019-05-09 and 2019-06-07
+        $('#game-winning-modal-div').modal('show');
         // checkVictoryDelayedAlert();
         // checkVictoryDelayedPlayerReposition();
     }
@@ -145,7 +152,7 @@ function checkVictory() {
 // Update the player's position, required method for game
 // Parameter: dt, a time delta between ticks
 // NOTE: For dt, see engine.js function main() @34:
-// NOTE: Outline essentially copied from base code for Enemy
+// NOTE: Basic syntax from base code for Enemy
 Player.prototype.update = function(dt) {
     // You should multiply any movement by the dt parameter
     // which will ensure the game runs at the same speed for
@@ -156,7 +163,7 @@ Player.prototype.update = function(dt) {
 // Update the player's position, required method for game
 // Parameter: dt, a time delta between ticks
 // NOTE: For dt, see engine.js function main() @34:
-// NOTE: Outline essentially copied from base code for Enemy
+// NOTE: Basic syntax from base code for Enemy
 Player.prototype.handleInput = function(event) {
     // You should multiply any movement by the dt parameter
     // which will ensure the game runs at the same speed for
@@ -164,6 +171,11 @@ Player.prototype.handleInput = function(event) {
 
     let keyDirection = event;
     const allowedDirections = ['left', 'up', 'right', 'down'];
+
+    if ((allowedDirections.includes(keyDirection) === true) &&
+        scoreboard.keystrokeCount === 0) {
+        startElapsedTime();
+    }
 
     // 2019-06-05: first if () test based on
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
@@ -173,13 +185,18 @@ Player.prototype.handleInput = function(event) {
     //     0.25 yAlignConstant
     } else if ((keyDirection == 'left') && (player.x >= 0.75)) {
         player.x -= 1;
+        scoreboard.keystrokeCount += 1;
     } else if ((keyDirection == 'up') && (player.y >= 0)) {
         player.y -= 1;
+        scoreboard.keystrokeCount += 1;
     } else if ((keyDirection == 'right') && (player.x <= 3)) {
         player.x += 1;
+        scoreboard.keystrokeCount += 1;
     } else if ((keyDirection == 'down') && (player.y <= 4)) {
         player.y += 1;
+        scoreboard.keystrokeCount += 1;
     } else {
+        scoreboard.keystrokeCount += 1;
         console.log("Player has reached an x or y limit.");
     }
 };
@@ -219,15 +236,164 @@ document.addEventListener('keyup', function(e) {
     player.handleInput(allowedKeys[e.keyCode]);
 });
 
-/*
-TODO
+
+// HELPER FUNCTIONS FOR SCOREBOARD SECTION
+
+// NOTE: All of these helper functions for scoreboard based upon
+// prior Memory Game project,
+
+// helper function
+// converts a one- or two-digit whole number to a two-digit string in '0X' format
+// TODO: add test for whole number input
+function toTDString(wn) {
+    let tds = (wn < 10) ? (0 + wn.toString()) : wn.toString();
+    return tds; //a two-digit string
+}
+
+// helper function
+// returns scoreboard.hHours, scoreboard.mMinutes, and scoreboard.sSeconds in HH:MM:SS string format
+// TODO: add test for whole number input
+function scoreboardHHMMSS() {
+    return toTDString(scoreboard.hHours) + ':' + toTDString(scoreboard.mMinutes) +
+        ':' + toTDString(scoreboard.sSeconds);
+}
+
+// helper function
+// increments digital display of time in HH:MM:SS string format by one second up to 24 hours
+// assumes it is called in one-second intervals; shorter intervals can be used for testing
+// based upon the following, which were originally consulted 1Q2019, I believe
+// (I can't recall the exact date) and consulted 2019-06-07:
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/toString
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator
+function displayNextSecondInHHMMSS() {
+    if (scoreboard.sSeconds < 59) {
+        scoreboard.sSeconds += 1;
+    } else {
+        scoreboard.sSeconds = 0;
+        if (scoreboard.mMinutes < 59) {
+            scoreboard.mMinutes += 1;
+        } else {
+            scoreboard.mMinutes = 0;
+            if (scoreboard.hHours < 24) {
+                scoreboard.hHours += 1;
+            } else {
+                window.alert('24-hour time limit reached.');
+            }
+        }
+    }
+    return scoreboardHHMMSS();
+}
+
+let elapsedTimeInterval;
+
+// helper function
+function startElapsedTime() {
+            let elapsedTimeInterval;
+            // NOTE: Initial test aims to prevent setting multiple intervals, which can be
+            // difficult to stop; based on
+            // https://stackoverflow.com/questions/14666924/clearinterval-not-working
+            // consulted 2019-05-09 and 2019-06-07
+            //     I relied upon this, and especially the comment answered
+            //     Feb 2 '13 at 21:56 by Konstantin Dinev
+            if (elapsedTimeInterval == undefined) {
+                elapsedTimeInterval = setInterval(updateElapsedTime, 1000);
+            } else {
+                console.log('elapsedTimeInterval already set, so no new interval')
+            }
+        }
+
+// helper function
+// display updated elapsed time in #modal-elapsed-time
+// TODO: test against system clock and fine tune interval in ms actual elapsed time
+//          For example, there will be some delay in computing functions,
+//          so, instead of using 1000ms, better value may be, e.g., 990ms
+function updateElapsedTime() {
+        scoreboard.elapsedTimeInnerHTML = displayNextSecondInHHMMSS();
+}
+
+// helper function
+// stops setInterval that updates the elapsed time for display in new user dashboard
+//  based on https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setInterval
+//  consulted 2019-05-03--04
+    // NOTE: See "Return Value" section:
+    //     Return value identifies the timer created.
+    // NOTE: See "Example 2: Alternating two colors"
+    //     Uses variable as parameter for clearInterval
+function stopElapsedTimeUpdate() {
+    clearInterval(elapsedTimeInterval);
+    // console.log('clearInterval has been called - elapsedTime should freeze');
+}
+
+
+// SCOREBOARD SECTION
+
+// Create scoreboard
+var Scoreboard = function() {
+    // elements of time for scoreboard
+    this.hHours
+    this.mMinutes
+    this.sSeconds
+    // initial values for elements of scoreboard
+    this.startElapsedTime = 0;
+    this.startKeystrokeCount = 0;
+    this.startCollisionCount = 0;
+    // accumulating values for elements of scoreboard
+    this.elapsedTime = 0;
+    this.keystrokeCount = 0;
+    this.collisionCount = 0;
+    // innerHTML for elements of scoreboard
+    // ***WIP
+    this.elapsedTimeInnerHTML = '';
+    this.keystrokeCountInnerHTML = '';
+    this.collisionCountInnerHTML = '';
+
+};
+
+// Instantiate scoreboard
+let scoreboard = new Scoreboard();
+
+// Update the data in the scoreboard
+// NOTE: Basic syntax from base code for Enemy
+Scoreboard.prototype.update = function() {
+    document.querySelector('#modal-elapsed-time').innerHTML =
+        this.elapsedTimeInnerHTML;
+    document.querySelector('#modal-collision-count').innerHTML =
+        this.keystrokeCountInnerHTML;
+    document.querySelector('#modal-keystroke-count').innerHTML =
+        this.collisionCountInnerHTML;
+};
+
+// Create modal to hold scoreboard data
+// NOTE: Based on keyup eventListener above and on eventListener done
+// for prior Memory Game project
+const modalPlayAgainInput = document.querySelector('#modal-play-again-button');
+
+function startNewGame() {
+    // based on on https://getbootstrap.com/docs/4.0/components/modal/,
+    // specifically, the "Methods" section, consulted 2019-06-07
+    $('#game-winning-modal-div').modal('hide');
+    //reset scoreboard
+    modalElapsedTime.innerHTML = elapsedTimeInitialHTML;
+    modalRating.innerHTML = threeStarsInnerHTML;
+    modalClickCount.innerHTML = clickCountDivInitialHTML;
+    player.x = player.startX;
+    player.y = player.startY;
+}
+
+modalPlayAgainInput.addEventListener('click', startNewGame);
+
+/*TODO
 1.  Time permitting:
     A.  Add additional functionality as described in project rubric.
     B.  Add add more functionality (e.g. link to YouTube video) for winning.
-    C.  Randomize Enemy speed and starting position values.
-    D.  Try module approach for collision detection.
+    C.  Implement means of delaying start of enemies
+    D.  Randomize Enemy speed and starting position values.
+    E.  Try module approach for collision detection.
+    F.  For time helper functions, add tests for whole number input
+    G.  Test updateElapsedTime against system clock
+*/
 
-
+/*
 ADDITIONAL REFERENCES CONSULTED
 
 Javascript:
@@ -252,9 +418,17 @@ https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Event_handlers
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/toString
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs
-https://stackoverflow.com/questions/25962958/calling-a-javascript-function-in-another-js-file
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator
 
+https://stackoverflow.com/questions/25962958/calling-a-javascript-function-in-another-js-file
+https://stackoverflow.com/questions/14666924/clearinterval-not-working
+
+
+Bootstrap:
+
+https://getbootstrap.com/docs/4.0/components/modal/
 
 KEY LEARNING
 
@@ -308,4 +482,5 @@ but I'm beginning to understand how (a) var allowedKeys and
 the acceptable keyboard input and (2) translate the keyCode for the key whose release
 fires the eventListener into a more comprehensible string that can be used in
 Player.prototype.handleInput = function(event)
+
 */
