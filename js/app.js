@@ -390,7 +390,8 @@ function startNewGame() {
 
 modalPlayAgainInput.addEventListener('click', startNewGame);
 
-/*TODO
+/*
+TODO
 1.  Time permitting:
     A.  Get object-oriented timer to work.
         See below in KEY LEARNING, note for 2019-06-08
