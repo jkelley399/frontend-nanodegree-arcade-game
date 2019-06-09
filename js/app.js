@@ -102,10 +102,11 @@ var Player = function() {
     // original eventListener
     this.currentKeyupValue = 0;
 
+    // WIP
     // tracking time for current round
-    this.elapsedTimeIntervalID = '';
-    this.startElapsedTimeInterval = '';
-    this.elapsedTimeInterval = '';
+    // this.elapsedTimeIntervalID = '';
+    // this.startElapsedTimeInterval = '';
+    // this.elapsedTimeInterval = '';
 };
 
 
@@ -113,7 +114,8 @@ var Player = function() {
 //     NOTE: chose separate function to enable modal-showing syntax
 function checkVictory() {
     if (player.y <= 0) {
-        player.stopElapsedTime();
+        // NOTE 2019-06-08: WIP --- commenting out timer functionality
+        // intervalClock.endIntervalClock();
         scoreboard.update();
         // NOTE:   Based on modal done for prior Memory Game project,
         //         which was based on on
@@ -150,18 +152,13 @@ Player.prototype.handleInput = function(event) {
     let keyDirection = event;
     const allowedDirections = ['left', 'up', 'right', 'down'];
 
-    // start elapsedTime
-    if ((allowedDirections.includes(keyDirection) === true) &&
-        scoreboard.keystrokeCount === 0) {
-        // WIP: Should it be this or Player.prototype in next line?
-        player.startElapsedTime();
-    }
-
-    // increment keystroke count
-    if (allowedDirections.includes(keyDirection) === true) {
-        // WIP: Is scoreboard within this prototype's scope?
-        scoreboard.keystrokeIncrement();
-    }
+    // // NOTE 2019-06-08: WIP --- commenting out timer functionality
+    // // start elapsedTime
+    // if ((allowedDirections.includes(keyDirection) === true) &&
+    //     scoreboard.keystrokeCount === 0) {
+    //     // WIP
+    //     intervalClock.startIntervalClock();
+    // }
 
     // 2019-06-05: first if () test based on
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
@@ -195,50 +192,11 @@ Player.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x * 101, this.y *83);
 };
 
-2019-06-08: WIP: COULDN'T GET updateElapsedTime to work as a method on Player.prototype
-switching to make it a stand-alone function
-
-Player.prototype.updateElapsedTime = function() {
-    // Use of Date.now() based on now in engine.js consulted 2019-06-08
-    //     and on
-    //     https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
-    //     consulted 2019-06-08
-    // JKQ:    Code below didn't work with this.startElapsedTimeInterval but did work with
-    //         player.startElapsedTimeInterval.  Why?  In general, shouldn't "this" inside
-    //         the prototype refer to the instance once it's instantiated?
-    if ((player.startElapsedTimeInterval == (undefined || '' || "" )) ||
-        (player.startElapsedTimeInterval >= 1560031790119)) {
-        player.startElapsedTimeInterval = Date.now();
-        player.elapsedTimeInterval = 0;
-    } else {
-        player.elapsedTimeInterval = (Date.now() - player.startElapsedTimeInterval);
-        console.log(player.elapsedTimeInterval);
-    }
-};
-
-let elapsedTimeIntervalID;
-
-Player.prototype.startElapsedTime = function() {
-    // NOTE: based on
-    // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setInterval
-    // consulted 2019-06-08
-    elapsedTimeIntervalID = setInterval(player.updateElapsedTime(), 100);
-};
-
-Player.prototype.stopElapsedTime = function() {
-    // NOTE: based on
-    // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setInterval
-    // consulted 2019-06-08
-    clearInterval(player.elapsedTimeIntervalID);
-};
-
-
-
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
 
-const player = new Player();
+let player = new Player();
 
 const enemy1 = new Enemy(1, 0, 1.6);
 const enemy2 = new Enemy(2, 0, 0.9);
@@ -261,6 +219,51 @@ document.addEventListener('keyup', function(e) {
     player.handleInput(allowedKeys[e.keyCode]);
 });
 
+// NOTE 2019-06-08: WIP --- commenting out clock section
+// // CLOCK SECTION
+
+// var IntervalClock = function () {
+//     this.startTime = '';
+//     this.millisecondIntervalTime = '';
+//     this.intervalTime = '';
+// };
+
+// IntervalClock.prototype.updateInterval = function() {
+//     if (this.startTime == '') {
+//         this.intervalTime = '';
+//     } else {
+//         this.millisecondIntervalTime = (Date.now() - this.startTime);
+//         this.intervalTime = this.millisecondIntervalTime;
+//         // for testing
+//         // console.log('this.millisecondIntervalTime = ' +
+//         //     this.millisecondIntervalTime);
+//     }
+// };
+
+// IntervalClock.prototype.startIntervalClock = function() {
+//     this.startTime = Date.now();
+// };
+
+// IntervalClock.prototype.endIntervalClock = function() {
+//     this.intervalTime = this.millisecondIntervalTime;
+//     scoreboard.elapsedTime = this.intervalTime;
+//     // for testing
+//     // console.log('this.intervalTime = ' + this.intervalTime);
+// };
+
+// IntervalClock.prototype.resetIntervalClock = function() {
+
+//     this.startTime = '';
+//     this.millisecondIntervalTime = '';
+//     this.intervalTime = '';
+
+// };
+
+// let intervalClock = new IntervalClock();
+
+// setInterval(intervalClock.updateInterval, 100);
+
+
 // SCOREBOARD SECTION
 
 // Create scoreboard
@@ -277,23 +280,18 @@ var Scoreboard = function() {
     this.elapsedTime = 0;
     this.keystrokeCount = 0;
     this.collisionCount = 0;
-    // innerHTML for elements of scoreboard
-    // ***WIP
-    this.elapsedTimeInnerHTML = '0';
-    this.keystrokeCountInnerHTML = '0';
-    this.collisionCountInnerHTML = '0';
-
 };
 
 // Update the data in the scoreboard
 // NOTE: Basic syntax from base code for Enemy
 Scoreboard.prototype.update = function() {
-    document.querySelector('#modal-elapsed-time').innerHTML =
-        this.elapsedTimeInnerHTML;
+    // NOTE 2019-06-08: WIP --- commenting out clock section
+    // document.querySelector('#modal-elapsed-time').innerHTML =
+    //     this.elapsedTimeInnerHTML;
     document.querySelector('#modal-collision-count').innerHTML =
-        this.keystrokeCountInnerHTML;
+        this.collisionCount;
     document.querySelector('#modal-keystroke-count').innerHTML =
-        this.collisionCountInnerHTML;
+        this.keystrokeCount;
 };
 
 // Increment keystroke count
@@ -308,56 +306,68 @@ Scoreboard.prototype.collisionCountIncrement = function() {
     this.collisionCount += 1;
 };
 
+// Reset the scoreboard
+// NOTE: Basic syntax from base code for Enemy
+Scoreboard.prototype.reset = function() {
+    this.elapsedTime = 0;
+    this.keystrokeCount = 0;
+    this.collisionCount = 0;
+    // NOTE 2019-06-08: WIP --- commenting out clock section
+    // document.querySelector('#modal-elapsed-time').innerHTML = '';
+    document.querySelector('#modal-collision-count').innerHTML = '';
+    document.querySelector('#modal-keystroke-count').innerHTML = '';
+};
+
 // Instantiate scoreboard
 let scoreboard = new Scoreboard();
 
+// NOTE 2019-06-08: WIP --- commenting out helper functions for scoreboard section
+// // HELPER FUNCTIONS FOR SCOREBOARD SECTION
 
-// HELPER FUNCTIONS FOR SCOREBOARD SECTION
+// // NOTE: All of these helper functions for scoreboard based upon
+// // prior Memory Game project,
 
-// NOTE: All of these helper functions for scoreboard based upon
-// prior Memory Game project,
+// // helper function
+// // converts a one- or two-digit whole number to a two-digit string in '0X' format
+// // TODO: add test for whole number input
+// function toTDString(wn) {
+//     let tds = (wn < 10) ? (0 + wn.toString()) : wn.toString();
+//     return tds; //a two-digit string
+// }
 
-// helper function
-// converts a one- or two-digit whole number to a two-digit string in '0X' format
-// TODO: add test for whole number input
-function toTDString(wn) {
-    let tds = (wn < 10) ? (0 + wn.toString()) : wn.toString();
-    return tds; //a two-digit string
-}
+// // helper function
+// // returns scoreboard.hHours, scoreboard.mMinutes, and scoreboard.sSeconds in HH:MM:SS string format
+// // TODO: add test for whole number input
+// function scoreboardHHMMSS() {
+//     return toTDString(scoreboard.hHours) + ':' + toTDString(scoreboard.mMinutes) +
+//         ':' + toTDString(scoreboard.sSeconds);
+// }
 
-// helper function
-// returns scoreboard.hHours, scoreboard.mMinutes, and scoreboard.sSeconds in HH:MM:SS string format
-// TODO: add test for whole number input
-function scoreboardHHMMSS() {
-    return toTDString(scoreboard.hHours) + ':' + toTDString(scoreboard.mMinutes) +
-        ':' + toTDString(scoreboard.sSeconds);
-}
-
-// helper function
-// increments digital display of time in HH:MM:SS string format by one second up to 24 hours
-// assumes it is called in one-second intervals; shorter intervals can be used for testing
-// based upon the following, which were originally consulted 1Q2019, I believe
-// (I can't recall the exact date) and consulted 2019-06-07:
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/toString
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator
-function displayNextSecondInHHMMSS() {
-    if (scoreboard.sSeconds < 59) {
-        scoreboard.sSeconds += 1;
-    } else {
-        scoreboard.sSeconds = 0;
-        if (scoreboard.mMinutes < 59) {
-            scoreboard.mMinutes += 1;
-        } else {
-            scoreboard.mMinutes = 0;
-            if (scoreboard.hHours < 24) {
-                scoreboard.hHours += 1;
-            } else {
-                window.alert('24-hour time limit reached.');
-            }
-        }
-    }
-    return scoreboardHHMMSS();
-}
+// // helper function
+// // increments digital display of time in HH:MM:SS string format by one second up to 24 hours
+// // assumes it is called in one-second intervals; shorter intervals can be used for testing
+// // based upon the following, which were originally consulted 1Q2019, I believe
+// // (I can't recall the exact date) and consulted 2019-06-07:
+// // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/toString
+// // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator
+// function displayNextSecondInHHMMSS() {
+//     if (scoreboard.sSeconds < 59) {
+//         scoreboard.sSeconds += 1;
+//     } else {
+//         scoreboard.sSeconds = 0;
+//         if (scoreboard.mMinutes < 59) {
+//             scoreboard.mMinutes += 1;
+//         } else {
+//             scoreboard.mMinutes = 0;
+//             if (scoreboard.hHours < 24) {
+//                 scoreboard.hHours += 1;
+//             } else {
+//                 window.alert('24-hour time limit reached.');
+//             }
+//         }
+//     }
+//     return scoreboardHHMMSS();
+// }
 
 // Create modal to hold scoreboard data
 // NOTE: Based on keyup eventListener above and on eventListener done
@@ -369,19 +379,22 @@ function startNewGame() {
     // specifically, the "Methods" section, consulted 2019-06-07
     $('#game-winning-modal-div').modal('hide');
     //reset scoreboard
-    scoreboard.update();
+    scoreboard.reset();
     // reset player values
-    player.elapsedTimeInterval = player.startElapsedTimeInterval;
     player.x = player.startX;
     player.y = player.startY;
-    // reset interval
-    elapsedTimeIntervalID = '';
+    // NOTE 2019-06-08: WIP --- commenting out clock section
+    // // reset intervalClock
+    // intervalClock.resetIntervalClock();
 }
 
 modalPlayAgainInput.addEventListener('click', startNewGame);
 
 /*TODO
 1.  Time permitting:
+    A.  Get object-oriented timer to work.
+        See below in KEY LEARNING, note for 2019-06-08
+2.  Further time permitting:
     A.  Add additional functionality as described in project rubric.
     B.  Add add more functionality (e.g. link to YouTube video) for winning.
     C.  Implement means of delaying start of enemies
@@ -389,6 +402,9 @@ modalPlayAgainInput.addEventListener('click', startNewGame);
     E.  Try module approach for collision detection.
     F.  For time helper functions, add tests for whole number input
     G.  Test updateElapsedTime against system clock
+    H.  Try to figure ut how to get updateElapsedTime to work as a method on Player
+        Difficulty may relate to "The 'this' problem" for setInterval
+        see: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setInterval#The_this_problem
 */
 
 /*
@@ -412,6 +428,7 @@ https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#Th
 https://developer.mozilla.org/en-US/docs/Web/API/EventTarget
 https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onkeyup
 https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent
+https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setInterval#The_this_problem
 https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Event_handlers
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
@@ -424,12 +441,22 @@ https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Cond
 https://stackoverflow.com/questions/25962958/calling-a-javascript-function-in-another-js-file
 https://stackoverflow.com/questions/14666924/clearinterval-not-working
 
+https://coderwall.com/p/65073w/using-this-in-scope-based-settimeout-setinterval
+https://stackoverflow.com/questions/18263585/call-javascript-object-method-with-setinterval
 
 Bootstrap:
 
 https://getbootstrap.com/docs/4.0/components/modal/
 
 KEY LEARNING
+
+2019-06-08:
+Tried to figure out how to do an object style timer, but have not figured it out yet.
+Found two good resources that I've consulted on 2019-06-08:
+https://coderwall.com/p/65073w/using-this-in-scope-based-settimeout-setinterval
+https://stackoverflow.com/questions/18263585/call-javascript-object-method-with-setinterval
+Time permitting, I'll continue working on this, but since project submission deadline
+is in about 24 hours, I'm going to submit what I have at present.
 
 2019-06-06:
 Also took me a while to figure out where to put collision detection.
