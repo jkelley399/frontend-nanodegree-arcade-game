@@ -114,8 +114,8 @@ var Player = function() {
 //     NOTE: chose separate function to enable modal-showing syntax
 function checkVictory() {
     if (player.y <= 0) {
-        // NOTE 2019-06-08: WIP --- commenting out timer functionality
-        // intervalClock.endIntervalClock();
+        // NOTE 2019-06-10: WIP --- uncommenting timer functionality
+        intervalClock.endIntervalClock();
         scoreboard.update();
         // NOTE:   Based on modal done for prior Memory Game project,
         //         which was based on on
@@ -152,13 +152,13 @@ Player.prototype.handleInput = function(event) {
     let keyDirection = event;
     const allowedDirections = ['left', 'up', 'right', 'down'];
 
-    // // NOTE 2019-06-08: WIP --- commenting out timer functionality
-    // // start elapsedTime
-    // if ((allowedDirections.includes(keyDirection) === true) &&
-    //     scoreboard.keystrokeCount === 0) {
-    //     // WIP
-    //     intervalClock.startIntervalClock();
-    // }
+    // NOTE 2019-06-08: WIP --- uncommenting timer functionality
+    // start elapsedTime
+    if ((allowedDirections.includes(keyDirection) === true) &&
+        scoreboard.keystrokeCount === 0) {
+        // WIP
+        intervalClock.startIntervalClock();
+    }
 
     // 2019-06-05: first if () test based on
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
@@ -219,15 +219,33 @@ document.addEventListener('keyup', function(e) {
     player.handleInput(allowedKeys[e.keyCode]);
 });
 
-// NOTE 2019-06-08: WIP --- commenting out clock section
-// // CLOCK SECTION
+// NOTE    2019-06-10: WIP --- uncommenting clock section
+//         and testing suggestions of anonymous Udacity reviewer
+// CLOCK SECTION
 
+// NOTE    2019-06-10: Original code on following lines
+//         New code below is part of a fix suggested by an anonymous
+//         Udacity reviewer on 2019-06-09 as a means of fixing the
+//         updateInterval method.  This also helps to overcome the overall
+//         problem of my earlier code allowing Date.now() to generate
+//         an undefined value in the updateInterval method.
+// Original code:
 // var IntervalClock = function () {
 //     this.startTime = '';
 //     this.millisecondIntervalTime = '';
 //     this.intervalTime = '';
 // };
 
+var IntervalClock = function () {
+    this.startTime = Date.now();
+};
+
+// NOTE    2019-06-10: Original code on following lines
+//         New code below is part of a fix suggested by an anonymous
+//         Udacity reviewer on 2019-06-09 as a means of fixing the
+//         updateInterval method.  This also helps to overcome the overall
+//         problem of my earlier code allowing Date.now() to generate
+//         an undefined value in the updateInterval method.
 // IntervalClock.prototype.updateInterval = function() {
 //     if (this.startTime == '') {
 //         this.intervalTime = '';
@@ -240,29 +258,57 @@ document.addEventListener('keyup', function(e) {
 //     }
 // };
 
-// IntervalClock.prototype.startIntervalClock = function() {
-//     this.startTime = Date.now();
-// };
+IntervalClock.prototype.updateInterval = function(x) {
+        this.millisecondIntervalTime = (x - this.startTime);
+        this.intervalTime = this.millisecondIntervalTime;
+        // for testing
+        // console.log('this.millisecondIntervalTime = ' +
+        //     this.millisecondIntervalTime);
+};
 
-// IntervalClock.prototype.endIntervalClock = function() {
-//     this.intervalTime = this.millisecondIntervalTime;
-//     scoreboard.elapsedTime = this.intervalTime;
-//     // for testing
-//     // console.log('this.intervalTime = ' + this.intervalTime);
-// };
+IntervalClock.prototype.startIntervalClock = function() {
+    this.startTime = Date.now();
+};
 
-// IntervalClock.prototype.resetIntervalClock = function() {
+IntervalClock.prototype.endIntervalClock = function() {
+    this.intervalTime = this.millisecondIntervalTime;
+    // 2019-06-10: WIP: Is this generating a NaN?
+    scoreboard.elapsedTimeCount = this.intervalTime;
+    // 2019-06-10: WIP: Probably need to change this to have a variable
+    clearInterval(elapsedTimeInterval);
+    // for testing
+    console.log('this.millisecondIntervalTime = ' +
+        this.millisecondIntervalTime);
+    console.log('this.intervalTime = ' + this.intervalTime);
 
-//     this.startTime = '';
-//     this.millisecondIntervalTime = '';
-//     this.intervalTime = '';
+};
 
-// };
+IntervalClock.prototype.resetIntervalClock = function() {
+    this.startTime = 0;
+    this.millisecondIntervalTime = 0;
+    this.intervalTime = 0;
+};
 
-// let intervalClock = new IntervalClock();
+IntervalClock.prototype.resetElapsedTimeInterval = function() {
+    elapsedTimeInterval;
+};
 
+let intervalClock = new IntervalClock();
+
+// NOTE    2019-06-10: Original code on following line
+//         New code below is part of a fix suggested by an anonymous
+//         Udacity reviewer on 2019-06-09 as a means of passing Date.now()
+//         to the function.  This also helps to overcome the overall
+//         problem of my earlier code allowing Date.now() to generate
+//         an undefined value in the updateInterval method.
+// Original code:
 // setInterval(intervalClock.updateInterval, 100);
+// 2019-06-10 WIP: setting interval time to 1000; need to reset to 100 for deployment
 
+// create variable for setInterval so it's easy to clear
+
+let elapsedTimeInterval =
+    setInterval(function(){intervalClock.updateInterval(Date.now())}, 1000);
 
 // SCOREBOARD SECTION
 
@@ -277,7 +323,7 @@ var Scoreboard = function() {
     this.startKeystrokeCount = 0;
     this.startCollisionCount = 0;
     // accumulating values for elements of scoreboard
-    this.elapsedTime = 0;
+    this.elapsedTimeCount = 0;
     this.keystrokeCount = 0;
     this.collisionCount = 0;
 };
@@ -285,9 +331,9 @@ var Scoreboard = function() {
 // Update the data in the scoreboard
 // NOTE: Basic syntax from base code for Enemy
 Scoreboard.prototype.update = function() {
-    // NOTE 2019-06-08: WIP --- commenting out clock section
-    // document.querySelector('#modal-elapsed-time').innerHTML =
-    //     this.elapsedTimeInnerHTML;
+    // NOTE 2019-06-10: WIP --- uncommenting clock section
+    document.querySelector('#modal-elapsed-time').innerHTML =
+        this.elapsedTimeCount;
     document.querySelector('#modal-collision-count').innerHTML =
         this.collisionCount;
     document.querySelector('#modal-keystroke-count').innerHTML =
@@ -309,11 +355,11 @@ Scoreboard.prototype.collisionCountIncrement = function() {
 // Reset the scoreboard
 // NOTE: Basic syntax from base code for Enemy
 Scoreboard.prototype.reset = function() {
-    this.elapsedTime = 0;
+    this.elapsedTimeCount = 0;
     this.keystrokeCount = 0;
     this.collisionCount = 0;
-    // NOTE 2019-06-08: WIP --- commenting out clock section
-    // document.querySelector('#modal-elapsed-time').innerHTML = '';
+    // NOTE 2019-06-08: WIP --- uncommenting clock section
+    document.querySelector('#modal-elapsed-time').innerHTML = '';
     document.querySelector('#modal-collision-count').innerHTML = '';
     document.querySelector('#modal-keystroke-count').innerHTML = '';
 };
@@ -383,15 +429,21 @@ function startNewGame() {
     // reset player values
     player.x = player.startX;
     player.y = player.startY;
-    // NOTE 2019-06-08: WIP --- commenting out clock section
-    // // reset intervalClock
-    // intervalClock.resetIntervalClock();
+    // NOTE 2019-06-10: WIP --- uncommenting clock section
+    // reset intervalClock
+    intervalClock.resetIntervalClock();
+    // 2019-06-10 WIP:
+    // resetting elapsedTimeInterval;
+    // otherwise time goes to 0 after first victory
+    intervalClock.resetElapsedTimeInterval();
 }
 
 modalPlayAgainInput.addEventListener('click', startNewGame);
 
 /*
 TODO
+0.  NOTE 2019-06-10: WIP --- time going to 0 and staying there after first victory
+    NEED TO UPDATE README.md
 1.  Time permitting:
     A.  Get object-oriented timer to work.
         See below in KEY LEARNING, note for 2019-06-08
@@ -429,6 +481,7 @@ https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#Th
 https://developer.mozilla.org/en-US/docs/Web/API/EventTarget
 https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onkeyup
 https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent
+https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setInterval
 https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setInterval#The_this_problem
 https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Event_handlers
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules
